@@ -1,17 +1,17 @@
-#Readme file for implementation of Dirichlet Process mixture model (DPM)
-#Nicole White, 2015. email: nm.white@qut.edu.au
+Read me file for implementation of Dirichlet Process mixture model (DPM)
+Nicole White, 2015. email: nm.white@qut.edu.au
 
-#The files contained in this folder allow for the estimation of a Multivariate Gaussian DPM using Markov chain Monte Carlo (MCMC).
+The files contained in this folder allow for the estimation of a Multivariate Gaussian DPM using Markov chain Monte Carlo (MCMC).
 
-#The implementation of the sampler (slice sampler DPM.R) requires the following input/s:
-	# y : matrix of observations (PCs corresponding to each sampled spike).  
-	#Dimension is r (number of PCs/dimensions) x n (number of spikes/observations).  
-	#Code is currently set up to read in file as a .csv, using read.csv()
+The implementation of the sampler (slice sampler DPM.R) requires the following input/s:
+	y : matrix of observations (PCs corresponding to each sampled spike).  
+	Dimension is r (number of PCs/dimensions) x n (number of spikes/observations).  
+	Code is currently set up to read in file as a .csv, using read.csv()
 
-#Values for each hyperparameter are specific as in the main text of the paper, in the list 'hypers'
+Values for each hyperparameter are specific as in the main text of the paper, in the list 'hypers'
 
-#For an initial number of clusters (K), the latent classification variable (z) is initialised using K-means
+For an initial number of clusters (K), the latent classification variable (z) is initialised using K-means
 
-#Information on the number of MCMC samples taken is contained in the list 'MCMC'.  Corresponding samples drawn at each (thinned) iteration are stored in 'MCMC.traces'.
+Information on the number of MCMC samples taken is contained in the list 'MCMC'.  Corresponding samples drawn at each (thinned) iteration are stored in 'MCMC.traces'.
 
-#NB: Implementation of main code file requires the following R packages to be installed: mcclust, MCMCpack, mvtnorm.
+NB: Implementation of main code file requires the following R packages to be installed: mcclust, MCMCpack, mvtnorm.
