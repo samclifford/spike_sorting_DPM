@@ -10,32 +10,18 @@ library(ggalt)
 #load DPM functions
 source("slice sampler DPM functions.R")
 
+# data sourced from paper
+# http://www.sciencedirect.com/science/article/pii/S0165027009004506
+# data available http://www2.le.ac.uk/departments/engineering/research/bioengineering/neuroengineering-lab/software
+
 data.files <- dir("./data/leacukcsn/",
                   pattern="mat",
                   full.names = T)
 
-MCMC.all <- vector(mode = "list",
-                   length = length(data.files))
+data.n <- length(data.files)
 
-spike.smoother <- function(x,
-                           y,
-                           xnew=x,
-                           k=20){
-  
-  require(mgcv)
-  
-  dat <-   data.frame(x = unlist(x),
-                      y= c(unlist(y)))
-  
-  my.spline <- gam(y ~ s(x, bs="ps", k=k), data=dat)
-  #my.spline <- loess(y ~ x, span=0.1)
-  
-  my.smooth <- predict(my.spline, 
-                       data.frame(x=unlist(xnew)))
-  
-  return(my.smooth)
-  
-}
+MCMC.all <- vector(mode = "list",
+                   length = data.n)
 
 for (i in 1:5){
   
@@ -65,9 +51,6 @@ for (i in 1:5){
     a$data[1, (spike.times + t)])
   
   ## need to smooth the data
-  
-  
-  
   
   spike.data %<>% data.frame
   spike.data$type <- t(spike.type)
@@ -121,19 +104,19 @@ for (i in 1:5){
                                    y=.$value))) %>%
     bind_rows
   
+  # save the processed data for later
   saveRDS(spike.dat, 
           file = gsub(pattern = "mat",
                       replacement = "RDS",
                       x = data.files[i]))
+  # 
+  # windows()
+  # ggplot(data=spike.dat, 
+  #        aes(x=time, y=value.smooth)) +
+  #   geom_line(alpha=0.1, aes(group=ID)) +
+  #   facet_wrap( ~ type, ncol=1)
   
-  windows()
-  ggplot(data=spike.dat, 
-         aes(x=time, y=value.smooth)) +
-    geom_line(alpha=0.1, aes(group=ID)) +
-    facet_wrap( ~ type, ncol=1)
-  
-  
-  
+  # robust PCA, was originally 4 PCs now we leave it unrestricted
   spike.pca <- spike.dat %>%
     select(ID, y=value.smooth, x=time) %>%
     spread(key = ID, value = y) %>%
@@ -141,12 +124,13 @@ for (i in 1:5){
     data.matrix(.) %>%
     robpca
   
-  set.seed(1337)
+  #set.seed(1337)
   # 
   # yinds <- sample(1:nrow(spike.pca$loadings),
   #                 replace = F,
   #                 size=100)
   
+  # can modify this with the above if you don't want to use ALL the data
   yinds <- 1:nrow(spike.pca$loadings)
   
   y <- t(spike.pca$loadings[yinds, ])
@@ -157,22 +141,17 @@ for (i in 1:5){
 
 saveRDS(MCMC.all, "MCMC.traces.RDS")
 
-tic <- Sys.time()
 spike.mean.all <- MCMC.all %>% 
   map("z") %>%
   map(~comp.psm(t(.x[, 1:(t-1)])))
-toc <- Sys.time()
-toc - tic
 
-tic <- Sys.time()
 zmap.all <- spike.mean.all %>%
   map(~maxpear(.x))
-toc <- Sys.time()
-toc - tic
 
-yt <- vector("list", 5)
+# for storage of solutions 
+yt <- vector("list", data.n)
 
-for (i in 1:5){
+for (i in 1:data.n){
   spike.dat <- readRDS(gsub(pattern = "mat",
                             replacement = "RDS",
                             x = data.files[i]))

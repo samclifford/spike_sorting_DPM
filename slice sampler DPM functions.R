@@ -355,3 +355,23 @@ fit_dpm <- function(y,
   return(MCMC.traces)
   
 }
+
+spike.smoother <- function(x,
+                           y,
+                           xnew=x,
+                           k=20){
+  
+  require(mgcv)
+  
+  dat <- data.frame(x = unlist(x),
+                    y = c(unlist(y)))
+  
+  my.spline <- gam(y ~ s(x, bs="ps", k=k), data=dat)
+  #my.spline <- loess(y ~ x, span=0.1)
+  
+  my.smooth <- predict(my.spline, 
+                       data.frame(x=unlist(xnew)))
+  
+  return(my.smooth)
+  
+}
