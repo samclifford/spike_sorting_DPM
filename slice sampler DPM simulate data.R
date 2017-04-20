@@ -24,11 +24,12 @@ make.data <- function(x,
   set.seed(seed)
   
   beta.0 <- rnorm(n=df)
-  
+  sigma.0 <- runif(n=df, min=0.2, max=0.5)
+  sigma.0[3] <- 0.6
+    
   beta <- t(rmvnorm(n = groups, 
                     mean = beta.0,
-                    sigma = diag(runif(n=df,
-                                       max=0.15))))
+                    sigma = diag(sigma.0)))
   
   
   beta.df <- data.frame(beta) %>%
@@ -89,6 +90,7 @@ sim.pca$scores %>%
 
 sim.pca$loadings # the data we want to use
 
+windows()
 ggplot(data=sim.pca$loadings %>%
          as.data.frame %>%
          mutate(group = curves$group ),

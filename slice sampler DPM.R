@@ -14,11 +14,11 @@ library(ggalt)
 #load DPM functions
 source("slice sampler DPM functions.R")
 
-#read in data; dim =rxn
-y <- read_csv("./data/waves2.csv",col_names = F) %>%
-  as.matrix
-
-# from sam's simulation
+# #read in data; dim =rxn
+# y <- read_csv("./data/waves2.csv",col_names = F) %>%
+#   as.matrix
+# 
+# # from sam's simulation
 y <- t(sim.pca$loadings)
 
 r <- dim(y)[1]
@@ -177,6 +177,13 @@ sim.mean <- comp.psm(t(MCMC.traces$z[,1:t-1]))
 
 # order y by the first PC
 o.y <- order(y[1,])
+o.y <- sim.dat %>%
+  group_by(curve, group) %>%
+  distinct %>%
+  ungroup %>%
+  arrange(group) %>%
+  select(curve) %>%
+  .$curve
 
 # take posterior similarity matrix and convert to tidy data frame
 sim.image <- sim.mean[o.y, o.y] %>%
@@ -207,10 +214,12 @@ yt <- data.frame(t(y),
 
 yt %<>% bind_cols(sim.dat %>%
                     group_by(curve, group) %>%
-                    distinct)
+                    distinct %>%
+                    select(-c(curve, group)))
 
 gather(yt, key, value, -c(z, id)) %>%
   mutate_each(funs(parse_number), key) %>%
+  na.omit %>%
   ggplot(data=., aes(x=z, y=value)) +
   geom_point(alpha=0.1,
              position = position_jitter(h=0,
@@ -237,5 +246,6 @@ ggplot(data=yt, aes(x=PC1,
   geom_encircle(s_shape=1, expand=0, alpha=0.25) +
   xlab("PC1") +
   ylab("PC2") +
-  geom_point(aes(shape=factor(group)))
+  geom_point(aes(shape=factor(group))) +
+  scale_shape(name="True grouping")
 dev.off()
