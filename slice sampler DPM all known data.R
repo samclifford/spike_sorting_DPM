@@ -23,8 +23,7 @@ data.n <- length(data.files)
 MCMC.all <- vector(mode = "list",
                    length = data.n)
 
-for (i in 1:5){
-  
+for (i in 1:5){ # purrr approach would be lovely
   
   a <- readMat(data.files[i])
   
@@ -61,7 +60,6 @@ for (i in 1:5){
                       value,
                       -c(ID, type)) %>%
     mutate(time = parse_number(time)) %>%
-    #filter(ID < 10) %>%
     split(.$ID) %>%
     map( ~ mutate(.x, 
                   value.smooth =
@@ -70,9 +68,9 @@ for (i in 1:5){
     bind_rows
   
   #locate maximum amplitude of each sampled spike
-  max.amp<-apply(spike.data[,1:64],
-                 1,
-                 function(x) which.max(x))
+  # max.amp<-apply(spike.data[,1:64],
+  #                1,
+  #                function(x) which.max(x))
   
   max.amp <- spike.dat %>%
     group_by(ID) %>%
@@ -85,18 +83,16 @@ for (i in 1:5){
   
   #overwrite spike.data to obtain spikes aligned at max. amp at time 20 (figures in paper)
   spike.data <- sapply(-20:44,
-                       function(t) a$data[1,(spike.times+max.amp)+t])
-  
-  spike.data %<>% data.frame
-  spike.data$type <- t(spike.type)
-  spike.data$ID <- 1:nrow(spike.data)
+                       function(t) a$data[1,(spike.times+max.amp)+t]) %>% 
+    data.frame %>%
+    mutate(type = t(spike.type),
+           ID = 1:nrow(spike.data))
   
   spike.dat <- gather(spike.data,
                       time, 
                       value,
                       -c(ID, type)) %>%
     mutate(time = parse_number(time)) %>%
-    #filter(ID < 10) %>%
     split(.$ID) %>%
     map( ~ mutate(.x, 
                   value.smooth =
@@ -131,11 +127,11 @@ for (i in 1:5){
   #                 size=100)
   
   # can modify this with the above if you don't want to use ALL the data
-  yinds <- 1:nrow(spike.pca$loadings)
+  #yinds <- 1:nrow(spike.pca$loadings)
   
-  y <- t(spike.pca$loadings[yinds, ])
+  #y <- t(spike.pca$loadings[yinds, ])
   
-  MCMC.all[[i]] <- fit_dpm(y, K=10)
+  #MCMC.all[[i]] <- fit_dpm(y, K=10)
   
 }
 
